@@ -43,7 +43,7 @@
 
 #define CHECK_PERMISSION_COUNT(ma_results, ma_count) CHECK_PERMISSION_COUNT_PREDICATE(ma_results, ma_count, ==)
 
-#define CHECK_PERMISSION_PRESENT(ma_results, ma_permission) {                                                          \
+#define CHECK_PERMISSION_PRESENT(ma_results, ma_permission) @autoreleasepool {                                                          \
     XCTestExpectation *ex = [self expectationWithDescription:@"Checking permission presence"];                         \
     __weak typeof(ma_results) weakResults = ma_results;                                                                \
     __attribute__((objc_precise_lifetime)) id token = [ma_results addNotificationBlock:^(__unused id r,                \
@@ -57,13 +57,13 @@
             }                                                                                                          \
         }                                                                                                              \
     }];                                                                                                                \
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];                                                            \
+    [self waitForExpectations:@[ex] timeout:20.0];                                                                     \
 }
 
 /// Check whether a permission disappears or is absent from a results.
 /// This macro is intended to be used to check that a permission is
 /// immediately absent, or eventually disappears, from a results.
-#define CHECK_PERMISSION_ABSENT(ma_results, ma_permission) {                                                           \
+#define CHECK_PERMISSION_ABSENT(ma_results, ma_permission) @autoreleasepool {                                                           \
     XCTestExpectation *ex = [self expectationWithDescription:@"Checking permission absence"];                          \
     __weak typeof(ma_results) weakResults = ma_results;                                                                \
     __attribute__((objc_precise_lifetime)) id token = [ma_results addNotificationBlock:^(__unused id r,                \
@@ -81,7 +81,7 @@
             [ex fulfill];                                                                                              \
         }                                                                                                              \
     }];                                                                                                                \
-    [self waitForExpectationsWithTimeout:10.0 handler:nil];                                                            \
+    [self waitForExpectations:@[ex] timeout:20.0];                                                                     \
 }
 
 #define GET_PERMISSION(ma_results, ma_permission, ma_destination) {                                                    \
@@ -189,9 +189,8 @@ static NSURL *makeTildeSubstitutedURL(NSURL *url, RLMSyncUser *user) {
 
 #pragma mark - Permissions
 
-// FIXME ROS 2.0: see comments inside body
 /// If user A grants user B read access to a Realm, user B should be able to read from it.
-- (void)disabled_testReadAccess {
+- (void)testReadAccess {
     __block void(^errorBlock)(NSError *) = nil;
     [[RLMSyncManager sharedManager] setErrorHandler:^(NSError *error, __unused RLMSyncSession *session) {
         if (errorBlock) {
@@ -241,7 +240,6 @@ static NSURL *makeTildeSubstitutedURL(NSURL *url, RLMSyncUser *user) {
     XCTestExpectation *deniedEx = [self expectationWithDescription:@"Expect a permission denied error."];
     errorBlock = ^(NSError *err) {
         // Expect an error from the global error handler.
-        // FIXME ROS 2.0: not sure what's wrong here
         XCTAssertNotNil(err);
         XCTAssertEqual(err.code, RLMSyncErrorPermissionDeniedError);
         [deniedEx fulfill];
@@ -584,9 +582,8 @@ static NSURL *makeTildeSubstitutedURL(NSURL *url, RLMSyncUser *user) {
     XCTAssertEqualObjects(p, [results objectAtIndex:index]);
 }
 
-// FIXME ROS 2.0: test works in isolation; fails when run as part of the whole suite.
 /// Deleting a permission should work.
-- (void)disabled_testDeletingPermission {
+- (void)testDeletingPermission {
     __block RLMResults<RLMSyncPermission *> *results;
 
     // Open a Realm for user A.
@@ -1034,9 +1031,8 @@ static NSURL *makeTildeSubstitutedURL(NSURL *url, RLMSyncUser *user) {
 
 #pragma mark - Delete Realm upon permission denied
 
-// FIXME ROS 2.0: figure out what's wrong and re-enable this test
 /// A Realm which is opened improperly should report an error allowing the app to recover.
-- (void)disabled_testDeleteRealmUponPermissionDenied {
+- (void)testDeleteRealmUponPermissionDenied {
     __block void(^errorBlock)(NSError *, RLMSyncSession *session) = nil;
     [[RLMSyncManager sharedManager] setErrorHandler:^(NSError *error, RLMSyncSession *session) {
         if (errorBlock) {
