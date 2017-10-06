@@ -337,7 +337,10 @@ static realm::util::Optional<RLMPropertyType> typeFromProtocolString(const char 
         return nil;
     }
 
-    RLMValidateSwiftPropertyName(name);
+    // Commenting out validation of the property name because our API uses a handful of properties that start
+    // with the word `new`. We will address this but at a later time. None of these objects are stored to
+    // Realm at this time, so the practical result of removing this validation is no change.
+//    RLMValidateSwiftPropertyName(name);
 
     _name = name;
     _indexed = indexed;
